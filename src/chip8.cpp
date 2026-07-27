@@ -19,13 +19,19 @@ void Chip_8::initialize() //chip initialization
 }
 
 
-void Chip_8::emulateCycle()
+void Chip_8::emulateCycle() //run one cycle of CPU
 {
-    std::cout << "PC: " << pc << "\n";
+    if (pc >= 4095) // safty net
+    {
+        std::cout << "end of memory\n";
+        return;
+    }
 
-    uint16_t opcode = memory[pc] << 8 | memory[pc + 1];
+    std::cout << "PC: " << std::hex << pc << "\n"; // print PC
 
-    std::cout << "Opcode read\n";
+    uint16_t opcode = memory[pc] << 8 | memory[pc + 1]; // get opcode
 
-    pc += 2;
+    std::cout << "Opcode: " << std::hex << opcode << "\n"; // print opcode
+
+    pc += 2; // Increment program counter
 }
