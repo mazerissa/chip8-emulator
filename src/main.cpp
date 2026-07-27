@@ -1,17 +1,17 @@
-#include <iostream> // lib for printing shit
+#include "chip8.hpp"
 
-#include "chip8.hpp" // import of cpu specs
+#include <iostream>
 
-
-int main() // start of the work
+int main()
 {
-    Chip_8 chip8; // from blueprint to object
+    std::cout << "CHIP-8 Emulator Initializing...\n\n";
 
-    chip8.initialize(); // initialization of da cpu
+    Chip_8 chip8;
+    chip8.initialize();
 
-    std::cout << "CHIP-8 emulator\n"; // printing this 
+    constexpr int debug_cycles = 10;
 
-    while (true) // loop that runs the cpu
+    for (int i = 0; i < debug_cycles; ++i)
     {
         chip8.emulateCycle();
     }

@@ -1,24 +1,20 @@
-#pragma once // run once
+#pragma once
 
-#include <cstdint> // library of fixed-width integer types
+#include <array>
+#include <cstdint>
 
-// chip class
-class Chip_8 {
-    public:
+class Chip_8 
+{
+public:
 
-        uint8_t memory[4096]; // 4KB of memory 
+    void initialize();
+    void emulateCycle();
 
-        uint8_t V[16]; // 16 registers
+    std::array<uint8_t, 4096> memory{};
+    std::array<uint8_t, 16>   V{};
+    std::array<uint16_t, 16>  stack{};
 
-        uint16_t I; // Index register
-
-        uint16_t pc; // Program counter
-    
-        uint16_t stack[16]; // Stack for subroutine calls
-
-        uint8_t sp; // Stack pointer
-
-        void initialize(); // reseting
-
-        void emulateCycle(); // eun one cycle of CPU
+    uint16_t I{0};
+    uint16_t pc{0};
+    uint8_t  sp{0};
 };
