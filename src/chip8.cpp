@@ -1,7 +1,7 @@
 #include "chip8.hpp" //importing chip8 class
 
 #include <cstring>
-
+#include <iostream>
 
 void Chip_8::initialize() //chip initialization
 {
@@ -19,10 +19,13 @@ void Chip_8::initialize() //chip initialization
 }
 
 
-void Chip_8::emulateCycle() // run one cycle of this stupid cpu
+void Chip_8::emulateCycle()
 {
-    uint16_t opcode = memory[pc] << 8 | memory[pc + 1]; // get instruction
+    std::cout << "PC: " << pc << "\n";
 
-    pc += 2; // Move to next instruction
+    uint16_t opcode = memory[pc] << 8 | memory[pc + 1];
 
+    std::cout << "Opcode read\n";
+
+    pc += 2;
 }
