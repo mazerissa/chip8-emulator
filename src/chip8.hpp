@@ -4,20 +4,21 @@
 
 // chip class
 class Chip_8 {
+    public:
 
-    uint8_t memory[4096]; // 4KB of memory 
+        uint8_t memory[4096]; // 4KB of memory 
 
-    uint8_t V[16]; // 16 registers
+        uint8_t V[16]; // 16 registers
 
-    uint16_t I; // Index register
+        uint16_t I; // Index register
 
-    uint16_t pc; // Program counter
+        uint16_t pc; // Program counter
     
-    uint16_t stack[16]; // Stack for subroutine calls
+        uint16_t stack[16]; // Stack for subroutine calls
 
-    uint8_t sp; // Stack pointer
+        uint8_t sp; // Stack pointer
 
-    void initialize(); // reseting
+        void initialize(); // reseting
 
-    void emulateCycle(); // eun one cycle of CPU
-}
+        void emulateCycle(); // eun one cycle of CPU
+};
