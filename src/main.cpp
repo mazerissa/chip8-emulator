@@ -1,25 +1,65 @@
 #include "chip8.hpp"
+#include "renderer.hpp"
+
 #include <iostream>
+
 
 int main()
 {
-    std::cout << "CHIP-8 Emulator\n\n";
-
     Chip_8 chip8;
 
     chip8.initialize();
 
-    if (!chip8.loadROM("roms/test.ch8"))
+
+    if(!chip8.loadROM("roms/test.ch8"))
     {
         return 1;
     }
 
-    constexpr int debug_cycles = 20;
 
-    for (int i = 0; i < debug_cycles; ++i)
+
+    Renderer renderer;
+
+
+    if(!renderer.initialize())
     {
-        chip8.emulateCycle();
+        return 1;
     }
+
+
+
+    bool running = true;
+
+
+    while(running)
+    {
+
+        SDL_Event event;
+
+
+        while(SDL_PollEvent(&event))
+        {
+            if(event.type == SDL_QUIT)
+            {
+                running = false;
+            }
+        }
+
+
+
+        chip8.emulateCycle();
+
+
+        renderer.draw(chip8);
+
+
+        SDL_Delay(16);
+    }
+
+
+
+    renderer.shutdown();
+
 
     return 0;
 }
