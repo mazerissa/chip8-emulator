@@ -1,5 +1,6 @@
 #include "chip8.hpp"
 #include <iostream>
+
 int main()
 {
     std::cout << "CHIP-8 Emulator\n\n";
@@ -7,7 +8,7 @@ int main()
     Chip_8 chip8;
 
     chip8.initialize();
-    
+
     if (!chip8.loadROM("roms/test.ch8"))
     {
         return 1;
