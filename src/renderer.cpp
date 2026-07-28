@@ -5,34 +5,26 @@
 
 bool Renderer::initialize()
 {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
-    {
-        std::cerr << "SDL initialization failed: "
-                  << SDL_GetError()
-                  << '\n';
-
-        return false;
-    }
-
 
     window = SDL_CreateWindow(
         "CHIP-8 Emulator",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        64 * SCALE,
-        32 * SCALE,
+        WIDTH * SCALE,
+        HEIGHT * SCALE,
         SDL_WINDOW_SHOWN
     );
 
 
-    if (!window)
+    if(!window)
     {
-        std::cerr << "Window creation failed: "
+        std::cerr << "Failed to create SDL window: "
                   << SDL_GetError()
-                  << '\n';
+                  << "\n";
 
         return false;
     }
+
 
 
     renderer = SDL_CreateRenderer(
@@ -42,25 +34,31 @@ bool Renderer::initialize()
     );
 
 
-    if (!renderer)
+    if(!renderer)
     {
-        std::cerr << "Renderer creation failed: "
+        std::cerr << "Failed to create renderer: "
                   << SDL_GetError()
-                  << '\n';
+                  << "\n";
+
+
+        SDL_DestroyWindow(window);
+
+        window = nullptr;
 
         return false;
     }
 
-
-    std::cout << "Renderer initialized\n";
 
     return true;
 }
 
 
 
+
+
 void Renderer::draw(const Chip_8& chip8)
 {
+
     SDL_SetRenderDrawColor(
         renderer,
         0,
@@ -68,6 +66,7 @@ void Renderer::draw(const Chip_8& chip8)
         0,
         255
     );
+
 
     SDL_RenderClear(renderer);
 
@@ -82,52 +81,68 @@ void Renderer::draw(const Chip_8& chip8)
     );
 
 
-    for (int y = 0; y < 32; y++)
+
+    for(int y = 0; y < HEIGHT; y++)
     {
-        for (int x = 0; x < 64; x++)
+
+        for(int x = 0; x < WIDTH; x++)
         {
-            int index = x + (y * 64);
+
+            int index = x + (y * WIDTH);
 
 
-            if (chip8.display[index])
+
+            if(chip8.display[index])
             {
+
                 SDL_Rect pixel;
 
+
                 pixel.x = x * SCALE;
+
                 pixel.y = y * SCALE;
+
                 pixel.w = SCALE;
+
                 pixel.h = SCALE;
+
 
 
                 SDL_RenderFillRect(
                     renderer,
                     &pixel
                 );
+
             }
+
         }
+
     }
 
 
+
     SDL_RenderPresent(renderer);
+
 }
+
+
 
 
 
 void Renderer::shutdown()
 {
-    if (renderer)
+
+    if(renderer)
     {
         SDL_DestroyRenderer(renderer);
         renderer = nullptr;
     }
 
 
-    if (window)
+    if(window)
     {
         SDL_DestroyWindow(window);
         window = nullptr;
     }
 
-
-    SDL_Quit();
 }

@@ -1,11 +1,13 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+
 #include "chip8.hpp"
 
 
 class Renderer
 {
+
 public:
 
     bool initialize();
@@ -23,4 +25,9 @@ private:
 
 
     static constexpr int SCALE = 10;
+
+    static constexpr int WIDTH = 64;
+
+    static constexpr int HEIGHT = 32;
+
 };
