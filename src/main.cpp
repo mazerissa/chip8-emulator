@@ -34,7 +34,7 @@ int main()
     chip8.initialize();
 
 
-
+// put the game that you want here 
     if(!chip8.loadROM("roms/games/Breakout [Carmelo Cortez, 1979].ch8"))
     {
 
