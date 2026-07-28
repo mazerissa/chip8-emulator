@@ -2,12 +2,14 @@
 
 #include <array>
 #include <cstdint>
+#include <string>
 
 class Chip_8 
 {
 public:
 
     void initialize();
+    bool loadROM(const std::string& filename);
     void emulateCycle();
 
     std::array<uint8_t, 4096> memory{};

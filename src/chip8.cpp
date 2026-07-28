@@ -4,6 +4,7 @@
 #include <format>
 #include <iomanip>
 #include <iostream>
+#include <fstream>
 
 void Chip_8::initialize()
 {
@@ -11,18 +12,49 @@ void Chip_8::initialize()
     I = 0;
     sp = 0;
 
-
     std::fill(std::begin(memory), std::end(memory), 0);
     std::fill(std::begin(V), std::end(V), 0);
     std::fill(std::begin(stack), std::end(stack), 0);
 
+}
 
-    memory[0x200] = 0x60; memory[0x201] = 0x0A; 
-    memory[0x202] = 0x61; memory[0x203] = 0x05; 
-    memory[0x204] = 0x70; memory[0x205] = 0x05; 
+bool Chip_8::loadROM(const std::string& filename)
+{
+    std::ifstream rom(filename, std::ios::binary);
 
-    std::cout << "Memory test: 0x" << std::hex << static_cast<int>(memory[0x200]) 
-              << " 0x" << static_cast<int>(memory[0x201]) << "\n";
+    if (!rom.is_open())
+    {
+        std::cerr << "Failed to open ROM: " << filename << '\n';
+        return false;
+    }
+
+    rom.seekg(0, std::ios::end);
+    const std::streamsize size = rom.tellg();
+    rom.seekg(0, std::ios::beg);
+
+    if (size <= 0)
+    {
+        std::cerr << "ROM is empty.\n";
+        return false;
+    }
+
+    constexpr std::size_t start = 0x200;
+
+    if (static_cast<std::size_t>(size) > memory.size() - start)
+    {
+        std::cerr << "ROM is too large.\n";
+        return false;
+    }
+
+    rom.read(reinterpret_cast<char*>(memory.data() + start), size);
+
+    std::cout << "Loaded ROM: "
+              << filename
+              << " ("
+              << size
+              << " bytes)\n";
+
+    return true;
 }
 
 void Chip_8::emulateCycle()
@@ -30,7 +62,6 @@ void Chip_8::emulateCycle()
 
     const uint16_t opcode = (memory[pc] << 8) | memory[pc + 1];
 
-    // Decode common nibbles/values up front
     const uint8_t x  = (opcode & 0x0F00) >> 8; 
     const uint8_t nn =  opcode & 0x00FF;      
 
