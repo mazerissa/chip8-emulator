@@ -1,6 +1,7 @@
 #include "keyboard.hpp"
 
 
+
 uint8_t Keyboard::mapKey(SDL_Keycode key)
 {
 
@@ -33,6 +34,7 @@ uint8_t Keyboard::mapKey(SDL_Keycode key)
 
         default:
             return 0xFF;
+
     }
 
 }
@@ -45,6 +47,7 @@ void Keyboard::handleInput(Chip_8& chip8, bool& running)
 {
 
     SDL_Event event;
+
 
 
     while(SDL_PollEvent(&event))
@@ -60,7 +63,16 @@ void Keyboard::handleInput(Chip_8& chip8, bool& running)
         if(event.type == SDL_KEYDOWN)
         {
 
-            uint8_t key = mapKey(event.key.keysym.sym);
+            if(event.key.keysym.sym == SDLK_ESCAPE)
+            {
+                running = false;
+            }
+
+
+
+            uint8_t key =
+                mapKey(event.key.keysym.sym);
+
 
 
             if(key != 0xFF)
@@ -68,14 +80,8 @@ void Keyboard::handleInput(Chip_8& chip8, bool& running)
                 chip8.keypad[key] = 1;
             }
 
-
-
-            if(event.key.keysym.sym == SDLK_ESCAPE)
-            {
-                running = false;
-            }
-
         }
+
 
 
 
@@ -83,7 +89,9 @@ void Keyboard::handleInput(Chip_8& chip8, bool& running)
         if(event.type == SDL_KEYUP)
         {
 
-            uint8_t key = mapKey(event.key.keysym.sym);
+            uint8_t key =
+                mapKey(event.key.keysym.sym);
+
 
 
             if(key != 0xFF)

@@ -3,7 +3,6 @@
 
 #include <iostream>
 
-
 #include "chip8.hpp"
 #include "renderer.hpp"
 #include "keyboard.hpp"
@@ -46,6 +45,8 @@ int main()
 
 
 
+
+
     Renderer renderer;
 
 
@@ -56,6 +57,8 @@ int main()
 
         return 1;
     }
+
+
 
 
 
@@ -77,15 +80,17 @@ int main()
 
 
 
+        /*
+            CHIP-8 CPU speed.
+            Most games run around 500Hz.
+            We execute 10 cycles per frame.
+        */
         for(int i = 0; i < 10; i++)
         {
             chip8.emulateCycle();
-            if(chip8.pc >= chip8.memory.size() - 1)
-            {
-                running = false;
-                break;
-            }
         }
+
+
 
         chip8.updateTimers();
 
@@ -108,8 +113,9 @@ int main()
 
 
 
-    renderer.shutdown();
 
+
+    renderer.shutdown();
 
 
     SDL_Quit();

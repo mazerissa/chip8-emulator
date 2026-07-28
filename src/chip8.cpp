@@ -3,147 +3,148 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <random>
+#include <cstdlib>
+#include <chrono>
 
-
-const uint8_t fontset[80] =
-{
-    0xF0,0x90,0x90,0x90,0xF0, // 0
-    0x20,0x60,0x20,0x20,0x70, // 1
-    0xF0,0x10,0xF0,0x80,0xF0, // 2
-    0xF0,0x10,0xF0,0x10,0xF0, // 3
-    0x90,0x90,0xF0,0x10,0x10, // 4
-    0xF0,0x80,0xF0,0x10,0xF0, // 5
-    0xF0,0x80,0xF0,0x90,0xF0, // 6
-    0xF0,0x10,0x20,0x40,0x40, // 7
-    0xF0,0x90,0xF0,0x90,0xF0, // 8
-    0xF0,0x90,0xF0,0x10,0xF0, // 9
-    0xF0,0x90,0xF0,0x90,0x90, // A
-    0xE0,0x90,0xE0,0x90,0xE0, // B
-    0xF0,0x80,0x80,0x80,0xF0, // C
-    0xE0,0x90,0x90,0x90,0xE0, // D
-    0xF0,0x80,0xF0,0x80,0xF0, // E
-    0xF0,0x80,0xF0,0x80,0x80  // F
-};
 
 
 void Chip_8::initialize()
 {
     pc = 0x200;
+
     I = 0;
+
     sp = 0;
 
-    delay_timer = 0;
-    sound_timer = 0;
+
+    delayTimer = 0;
+
+    soundTimer = 0;
+
 
     drawFlag = false;
 
 
     std::fill(memory.begin(), memory.end(), 0);
+
     std::fill(V.begin(), V.end(), 0);
+
     std::fill(stack.begin(), stack.end(), 0);
+
     std::fill(display.begin(), display.end(), 0);
+
     std::fill(keypad.begin(), keypad.end(), 0);
 
 
+
     loadFontset();
+
+
+    std::cout << "CHIP-8 initialized\n";
 }
+
+
 
 
 
 void Chip_8::loadFontset()
 {
+
     for(int i = 0; i < 80; i++)
     {
         memory[0x50 + i] = fontset[i];
     }
+
 }
+
+
 
 
 
 bool Chip_8::loadROM(const std::string& filename)
 {
-    const std::vector<std::string> candidates = {
-        filename,
-        "../" + filename,
-        "./" + filename,
-        "roms/" + filename,
-        "../roms/" + filename
-    };
 
-    std::ifstream rom;
-    std::string resolvedPath;
+    std::ifstream rom(filename, std::ios::binary);
 
-    for (const auto& candidate : candidates)
+
+    if(!rom)
     {
-        rom.open(candidate, std::ios::binary | std::ios::ate);
-        if (rom.is_open())
-        {
-            resolvedPath = candidate;
-            break;
-        }
-    }
+        std::cerr
+            << "Failed to open ROM: "
+            << filename
+            << "\n";
 
-    if (!rom.is_open())
-    {
-        std::cerr << "Failed to open ROM: " << filename << "\n";
         return false;
     }
 
 
-    std::streamsize size = rom.tellg();
+
+    rom.seekg(0, std::ios::end);
+
+    auto size = rom.tellg();
 
     rom.seekg(0, std::ios::beg);
 
 
-    if(size > (memory.size() - 0x200))
+
+    if(size > memory.size() - 0x200)
     {
         std::cerr << "ROM too large\n";
         return false;
     }
 
 
+
     rom.read(
-        reinterpret_cast<char*>(memory.data() + 0x200),
+        reinterpret_cast<char*>(&memory[0x200]),
         size
     );
 
 
-    std::cout << "Loaded ROM: "
-              << resolvedPath
-              << " ("
-              << size
-              << " bytes)\n";
+
+    std::cout
+        << "Loaded ROM: "
+        << filename
+        << " ("
+        << size
+        << " bytes)\n";
 
 
     return true;
+
 }
+
 
 
 
 
 void Chip_8::emulateCycle()
 {
-    if (pc >= memory.size() - 1)
-    {
-        std::cerr << "PC out of bounds\n";
-        return;
-    }
 
     uint16_t opcode =
         (memory[pc] << 8) |
         memory[pc + 1];
 
 
-    uint16_t nnn = opcode & 0x0FFF;
 
-    uint8_t nn = opcode & 0x00FF;
+    uint8_t x =
+        (opcode & 0x0F00) >> 8;
 
-    uint8_t n = opcode & 0x000F;
 
-    uint8_t x = (opcode & 0x0F00) >> 8;
+    uint8_t y =
+        (opcode & 0x00F0) >> 4;
 
-    uint8_t y = (opcode & 0x00F0) >> 4;
+
+    uint8_t n =
+        opcode & 0x000F;
+
+
+    uint8_t nn =
+        opcode & 0x00FF;
+
+
+    uint16_t nnn =
+        opcode & 0x0FFF;
 
 
 
@@ -155,199 +156,415 @@ void Chip_8::emulateCycle()
     {
 
 
-    case 0x0000:
+        case 0x0000:
 
-        if(opcode == 0x00E0)
-        {
-            std::fill(display.begin(), display.end(), 0);
-            drawFlag = true;
-        }
-
-        else if(opcode == 0x00EE)
-        {
-            sp--;
-            pc = stack[sp];
-        }
-
-        break;
-
-
-
-    case 0x1000:
-
-        pc = nnn;
-
-        break;
-
-
-
-    case 0x2000:
-
-        stack[sp] = pc;
-        sp++;
-
-        pc = nnn;
-
-        break;
-
-
-
-    case 0x3000:
-
-        if(V[x] == nn)
-            pc += 2;
-
-        break;
-
-
-
-    case 0x4000:
-
-        if(V[x] != nn)
-            pc += 2;
-
-        break;
-
-
-
-    case 0x6000:
-
-        V[x] = nn;
-
-        break;
-
-
-
-    case 0x7000:
-
-        V[x] += nn;
-
-        break;
-
-
-
-    case 0xA000:
-
-        I = nnn;
-
-        break;
-
-
-
-    case 0xD000:
-    {
-
-        V[0xF] = 0;
-
-
-        for(int row = 0; row < n; row++)
-        {
-            uint8_t sprite = memory[I + row];
-
-
-            for(int col = 0; col < 8; col++)
+            if(opcode == 0x00E0)
             {
-                if(sprite & (0x80 >> col))
+                std::fill(
+                    display.begin(),
+                    display.end(),
+                    0
+                );
+
+                drawFlag = true;
+            }
+
+
+            else if(opcode == 0x00EE)
+            {
+                sp--;
+
+                pc = stack[sp];
+            }
+
+            break;
+
+
+
+
+        case 0x1000:
+
+            pc = nnn;
+
+            break;
+
+
+
+
+        case 0x2000:
+
+            stack[sp] = pc;
+
+            sp++;
+
+            pc = nnn;
+
+            break;
+
+
+
+
+        case 0x3000:
+
+            if(V[x] == nn)
+                pc += 2;
+
+            break;
+
+
+
+
+        case 0x4000:
+
+            if(V[x] != nn)
+                pc += 2;
+
+            break;
+
+
+
+
+        case 0x5000:
+
+            if(V[x] == V[y])
+                pc += 2;
+
+            break;
+
+
+
+
+        case 0x6000:
+
+            V[x] = nn;
+
+            break;
+
+
+
+
+        case 0x7000:
+
+            V[x] += nn;
+
+            break;
+
+
+
+
+        case 0x8000:
+
+            switch(n)
+            {
+
+                case 0x0:
+                    V[x] = V[y];
+                    break;
+
+
+                case 0x1:
+                    V[x] |= V[y];
+                    break;
+
+
+                case 0x2:
+                    V[x] &= V[y];
+                    break;
+
+
+                case 0x3:
+                    V[x] ^= V[y];
+                    break;
+
+
+                case 0x4:
+                {
+                    uint16_t result =
+                        V[x] + V[y];
+
+
+                    V[0xF] =
+                        result > 255;
+
+
+                    V[x] =
+                        result & 0xFF;
+
+                    break;
+                }
+
+
+
+                case 0x5:
+
+                    V[0xF] =
+                        V[x] > V[y];
+
+
+                    V[x] -= V[y];
+
+                    break;
+
+
+
+                case 0x6:
+
+                    V[0xF] =
+                        V[x] & 1;
+
+
+                    V[x] >>= 1;
+
+                    break;
+
+
+
+                case 0x7:
+
+                    V[0xF] =
+                        V[y] > V[x];
+
+
+                    V[x] =
+                        V[y] - V[x];
+
+                    break;
+
+
+
+                case 0xE:
+
+                    V[0xF] =
+                        (V[x] & 0x80) >> 7;
+
+
+                    V[x] <<= 1;
+
+                    break;
+
+            }
+
+            break;
+
+
+
+
+        case 0x9000:
+
+            if(V[x] != V[y])
+                pc += 2;
+
+            break;
+
+
+
+
+        case 0xA000:
+
+            I = nnn;
+
+            break;
+
+
+
+
+        case 0xC000:
+
+            V[x] =
+                (rand() % 256) & nn;
+
+            break;
+
+
+
+
+        case 0xD000:
+        {
+
+            V[0xF] = 0;
+
+
+            for(int row = 0; row < n; row++)
+            {
+
+                uint8_t sprite =
+                    memory[I + row];
+
+
+                for(int col = 0; col < 8; col++)
                 {
 
-                    int pixelX = (V[x] + col) % 64;
-                    int pixelY = (V[y] + row) % 32;
+                    if(sprite & (0x80 >> col))
+                    {
+
+                        int px =
+                            (V[x] + col) % 64;
 
 
-                    int index = pixelX + pixelY * 64;
+                        int py =
+                            (V[y] + row) % 32;
 
 
-                    if(display[index])
-                        V[0xF] = 1;
+
+                        int index =
+                            px + py * 64;
 
 
-                    display[index] ^= 1;
+
+                        if(display[index])
+                            V[0xF] = 1;
+
+
+
+                        display[index] ^= 1;
+
+                    }
+
                 }
+
             }
-        }
 
 
-        drawFlag = true;
-
-        break;
-    }
-
-
-
-    case 0xF000:
-
-        switch(nn)
-        {
-
-        case 0x07:
-
-            V[x] = delay_timer;
-
-            break;
-
-
-        case 0x15:
-
-            delay_timer = V[x];
-
-            break;
-
-
-        case 0x18:
-
-            sound_timer = V[x];
-
-            break;
-
-
-
-        case 0x1E:
-
-            I += V[x];
-
-            break;
-
-
-
-        case 0x29:
-
-            I = 0x50 + (V[x] * 5);
-
-            break;
-
-
-
-        case 0x55:
-
-            for(int i = 0; i <= x; i++)
-                memory[I+i] = V[i];
-
-            break;
-
-
-
-        case 0x65:
-
-            for(int i = 0; i <= x; i++)
-                V[i] = memory[I+i];
+            drawFlag = true;
 
             break;
 
         }
 
-        break;
 
 
 
-    default:
+        case 0xE000:
 
-        std::cout
-        << "Unknown opcode: "
-        << std::hex
-        << opcode
-        << "\n";
+            if((opcode & 0x00FF) == 0x9E)
+            {
 
-        break;
+                if(keypad[V[x]])
+                    pc += 2;
+
+            }
+
+
+            else if((opcode & 0x00FF) == 0xA1)
+            {
+
+                if(!keypad[V[x]])
+                    pc += 2;
+
+            }
+
+
+            break;
+
+
+
+
+
+        case 0xF000:
+
+            switch(nn)
+            {
+
+
+                case 0x07:
+
+                    V[x] = delayTimer;
+
+                    break;
+
+
+
+                case 0x15:
+
+                    delayTimer = V[x];
+
+                    break;
+
+
+
+                case 0x18:
+
+                    soundTimer = V[x];
+
+                    break;
+
+
+
+                case 0x0A:
+                {
+
+                    bool pressed = false;
+
+
+                    for(int i = 0; i < 16; i++)
+                    {
+
+                        if(keypad[i])
+                        {
+
+                            V[x] = i;
+
+                            pressed = true;
+
+                        }
+
+                    }
+
+
+                    if(!pressed)
+                        pc -= 2;
+
+
+                    break;
+
+                }
+
+
+
+                case 0x29:
+
+                    I = 0x50 + (V[x] * 5);
+
+                    break;
+
+
+
+                case 0x33:
+
+                    memory[I] =
+                        V[x] / 100;
+
+
+                    memory[I+1] =
+                        (V[x] / 10) % 10;
+
+
+                    memory[I+2] =
+                        V[x] % 10;
+
+                    break;
+
+
+
+                case 0x55:
+
+                    for(int i = 0; i <= x; i++)
+                        memory[I+i] = V[i];
+
+                    break;
+
+
+
+                case 0x65:
+
+                    for(int i = 0; i <= x; i++)
+                        V[i] = memory[I+i];
+
+                    break;
+
+            }
+
+            break;
 
     }
 
@@ -361,16 +578,29 @@ void Chip_8::emulateCycle()
 void Chip_8::updateTimers()
 {
 
-    if(delay_timer > 0)
-        delay_timer--;
+    static auto last =
+        std::chrono::steady_clock::now();
 
 
-    if(sound_timer > 0)
+
+    auto now =
+        std::chrono::steady_clock::now();
+
+
+
+    if(std::chrono::duration_cast<std::chrono::milliseconds>(now-last).count() >= 16)
     {
-        sound_timer--;
 
-        if(sound_timer == 0)
-            std::cout << "BEEP\n";
+        if(delayTimer > 0)
+            delayTimer--;
+
+
+        if(soundTimer > 0)
+            soundTimer--;
+
+
+        last = now;
+
     }
 
 }

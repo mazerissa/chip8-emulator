@@ -5,6 +5,7 @@
 #include "chip8.hpp"
 
 
+
 class Renderer
 {
 
@@ -17,6 +18,7 @@ public:
     void shutdown();
 
 
+
 private:
 
     SDL_Window* window = nullptr;
@@ -24,10 +26,11 @@ private:
     SDL_Renderer* renderer = nullptr;
 
 
-    static constexpr int SCALE = 10;
 
     static constexpr int WIDTH = 64;
 
     static constexpr int HEIGHT = 32;
+
+    static constexpr int SCALE = 10;
 
 };

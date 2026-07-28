@@ -3,6 +3,7 @@
 #include <iostream>
 
 
+
 bool Renderer::initialize()
 {
 
@@ -18,9 +19,10 @@ bool Renderer::initialize()
 
     if(!window)
     {
-        std::cerr << "Failed to create SDL window: "
-                  << SDL_GetError()
-                  << "\n";
+        std::cerr
+            << "Failed to create window: "
+            << SDL_GetError()
+            << "\n";
 
         return false;
     }
@@ -36,9 +38,10 @@ bool Renderer::initialize()
 
     if(!renderer)
     {
-        std::cerr << "Failed to create renderer: "
-                  << SDL_GetError()
-                  << "\n";
+        std::cerr
+            << "Failed to create renderer: "
+            << SDL_GetError()
+            << "\n";
 
 
         SDL_DestroyWindow(window);
@@ -49,7 +52,9 @@ bool Renderer::initialize()
     }
 
 
+
     return true;
+
 }
 
 
@@ -135,13 +140,16 @@ void Renderer::shutdown()
     if(renderer)
     {
         SDL_DestroyRenderer(renderer);
+
         renderer = nullptr;
     }
+
 
 
     if(window)
     {
         SDL_DestroyWindow(window);
+
         window = nullptr;
     }
 
