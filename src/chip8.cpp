@@ -14,15 +14,13 @@ void Chip_8::initialize()
 
 
     std::fill(memory.begin(), memory.end(), 0);
+
     std::fill(V.begin(), V.end(), 0);
+
     std::fill(stack.begin(), stack.end(), 0);
+
     std::fill(display.begin(), display.end(), 0);
-
-    for (size_t i = 0; i < fontset.size(); i++)
-    {
-        memory[0x50 + i] = fontset[i];
-    }
-
+    std::fill(keypad.begin(), keypad.end(), 0);
 
     std::cout << "CHIP-8 initialized\n";
 }
@@ -357,6 +355,37 @@ void Chip_8::emulateCycle()
 
             break;
         }
+
+        case 0xE000:
+{
+    switch(opcode & 0x00FF)
+    {
+
+        case 0x9E:
+        {
+            if(keypad[V[x]])
+            {
+                pc += 2;
+            }
+
+            break;
+        }
+
+
+        case 0xA1:
+        {
+            if(!keypad[V[x]])
+            {
+                pc += 2;
+            }
+
+            break;
+        }
+
+    }
+
+    break;
+}
 
         case 0xF000:
         {

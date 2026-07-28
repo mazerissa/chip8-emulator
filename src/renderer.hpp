@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include "chip8.hpp"
 
+
 class Renderer
 {
 public:
@@ -17,7 +18,9 @@ public:
 private:
 
     SDL_Window* window = nullptr;
+
     SDL_Renderer* renderer = nullptr;
+
 
     static constexpr int SCALE = 10;
 };

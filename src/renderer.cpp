@@ -5,12 +5,11 @@
 
 bool Renderer::initialize()
 {
-    if(SDL_Init(SDL_INIT_VIDEO) != 0)
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
-        std::cerr 
-            << "SDL init failed: "
-            << SDL_GetError()
-            << '\n';
+        std::cerr << "SDL initialization failed: "
+                  << SDL_GetError()
+                  << '\n';
 
         return false;
     }
@@ -26,10 +25,11 @@ bool Renderer::initialize()
     );
 
 
-    if(!window)
+    if (!window)
     {
-        std::cerr
-            << "Window creation failed\n";
+        std::cerr << "Window creation failed: "
+                  << SDL_GetError()
+                  << '\n';
 
         return false;
     }
@@ -42,14 +42,17 @@ bool Renderer::initialize()
     );
 
 
-    if(!renderer)
+    if (!renderer)
     {
-        std::cerr
-            << "Renderer creation failed\n";
+        std::cerr << "Renderer creation failed: "
+                  << SDL_GetError()
+                  << '\n';
 
         return false;
     }
 
+
+    std::cout << "Renderer initialized\n";
 
     return true;
 }
@@ -79,20 +82,19 @@ void Renderer::draw(const Chip_8& chip8)
     );
 
 
-    for(int y = 0; y < 32; y++)
+    for (int y = 0; y < 32; y++)
     {
-        for(int x = 0; x < 64; x++)
+        for (int x = 0; x < 64; x++)
         {
-            int index = x + y * 64;
+            int index = x + (y * 64);
 
 
-            if(chip8.display[index])
+            if (chip8.display[index])
             {
                 SDL_Rect pixel;
 
                 pixel.x = x * SCALE;
                 pixel.y = y * SCALE;
-
                 pixel.w = SCALE;
                 pixel.h = SCALE;
 
@@ -113,8 +115,19 @@ void Renderer::draw(const Chip_8& chip8)
 
 void Renderer::shutdown()
 {
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    if (renderer)
+    {
+        SDL_DestroyRenderer(renderer);
+        renderer = nullptr;
+    }
+
+
+    if (window)
+    {
+        SDL_DestroyWindow(window);
+        window = nullptr;
+    }
+
 
     SDL_Quit();
 }

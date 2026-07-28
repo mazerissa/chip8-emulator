@@ -1,50 +1,42 @@
 #include "chip8.hpp"
 #include "renderer.hpp"
-
+#include "keyboard.hpp"
+#include <SDL2/SDL.h>
 #include <iostream>
 
-
-int main()
+int main(int argc, char* argv[])
 {
+    std::cout << "CHIP-8 Emulator\n\n";
+
+
     Chip_8 chip8;
 
     chip8.initialize();
 
 
-    if(!chip8.loadROM("roms/test.ch8"))
-    {
-        return 1;
-    }
-
+    if (!chip8.loadROM("roms/drawtest.ch8"))
+{
+    return 1;
+}
 
 
     Renderer renderer;
 
-
-    if(!renderer.initialize())
+    if (!renderer.initialize())
     {
         return 1;
     }
 
+
+    Keyboard keyboard;
 
 
     bool running = true;
 
 
-    while(running)
+    while (running)
     {
-
-        SDL_Event event;
-
-
-        while(SDL_PollEvent(&event))
-        {
-            if(event.type == SDL_QUIT)
-            {
-                running = false;
-            }
-        }
-
+        keyboard.handleInput(chip8, running);
 
 
         chip8.emulateCycle();
@@ -55,7 +47,6 @@ int main()
 
         SDL_Delay(16);
     }
-
 
 
     renderer.shutdown();
