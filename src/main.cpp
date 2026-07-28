@@ -35,7 +35,7 @@ int main()
 
 
 
-    if(!chip8.loadROM("roms/test.ch8"))
+    if(!chip8.loadROM("roms/games/Breakout [Carmelo Cortez, 1979].ch8"))
     {
 
         SDL_Quit();
@@ -78,13 +78,6 @@ int main()
             running
         );
 
-
-
-        /*
-            CHIP-8 CPU speed.
-            Most games run around 500Hz.
-            We execute 10 cycles per frame.
-        */
         for(int i = 0; i < 10; i++)
         {
             chip8.emulateCycle();
